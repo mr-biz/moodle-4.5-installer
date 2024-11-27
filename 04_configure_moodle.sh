@@ -32,7 +32,8 @@ chmod 0770 $MOODLE_DATA_DIR
 # Configure Apache for Moodle site
 cat > $MOODLE_VHOST_CONF <<EOL
 <VirtualHost *:80>
-    ServerName localhost
+    ServerName $MOODLE_URL
+    ServerAlias $MOODLE_IP_ADDRESS
     DocumentRoot $MOODLE_INSTALL_DIR
 
     <Directory $MOODLE_INSTALL_DIR>
@@ -40,6 +41,9 @@ cat > $MOODLE_VHOST_CONF <<EOL
         AllowOverride All
         Require all granted
     </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/moodle_error.log
+    CustomLog ${APACHE_LOG_DIR}/moodle_access.log combined
 </VirtualHost>
 EOL
 
@@ -74,7 +78,7 @@ global \$CFG;
   'dbsocket' => '',
 );
 
-\$CFG->wwwroot = 'http://localhost';
+\$CFG->wwwroot = '$MOODLE_PROTOCOL://$MOODLE_URL';
 \$CFG->dataroot  = '$MOODLE_DATA_DIR';
 \$CFG->admin     = 'admin';
 \$CFG->directorypermissions = 0755;
@@ -94,8 +98,5 @@ EOL
 # Set correct permissions for config.php
 chown root:root $MOODLE_CONFIG_PHP
 chmod 0644 $MOODLE_CONFIG_PHP
-
-# Set up cron job for Moodle tasks
-echo "*/1 * * * * /usr/bin/php $MOODLE_INSTALL_DIR/admin/cli/cron.php >/dev/null 2>&1" | crontab -u www-data -
 
 echo "Moodle setup completed successfully."

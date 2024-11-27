@@ -9,7 +9,7 @@ cat /tmp/moodle_params.sh
 echo "--------------------------------"
 
 # Create config.php with Redis configuration
-cat > $MOODLE_CONFIG_PHP <<EOL
+cat > "$MOODLE_CONFIG_PHP" <<EOL
 <?php
 unset(\$CFG);
 global \$CFG;
@@ -35,7 +35,7 @@ global \$CFG;
   'dbsocket' => '',
 );
 
-\$CFG->wwwroot = 'http://$SERVER_NAME';
+\$CFG->wwwroot = '$MOODLE_PROTOCOL://$MOODLE_URL';
 \$CFG->dataroot  = '$MOODLE_DATA_DIR';
 \$CFG->admin     = 'admin';
 \$CFG->directorypermissions = 0755;
@@ -53,8 +53,8 @@ require_once(__DIR__ . '/lib/setup.php');
 EOL
 
 # Set correct permissions for config.php
-chown root:root $MOODLE_CONFIG_PHP
-chmod 0644 $MOODLE_CONFIG_PHP
+chown root:root "$MOODLE_CONFIG_PHP" || { echo "Error: Failed to set ownership of config.php"; exit 1; }
+chmod 0644 "$MOODLE_CONFIG_PHP" || { echo "Error: Failed to set permissions on config.php"; exit 1; }
 
 # Validate config.php
 if [ ! -f "$MOODLE_CONFIG_PHP" ]; then
