@@ -3,11 +3,9 @@
 # Source the parameters
 source /tmp/moodle_params.sh
 
-# Update config.php with database port and socket settings
-sed -i "s/'dbport' => '',/'dbport' => '5432',/" "$MOODLE_CONFIG_PHP"
-sed -i "s/'dbsocket' => '',/'dbsocket' => '\/var\/run\/postgresql',/" "$MOODLE_CONFIG_PHP"
+echo "Starting final setup for Moodle..."
 
-# Set correct permissions for Moodle files and directories:
+# Set correct permissions for Moodle files and directories
 # For Moodle application files
 find $MOODLE_INSTALL_DIR -type d -exec chmod 2770 {} \;
 find $MOODLE_INSTALL_DIR -type f -exec chmod 0660 {} \;
@@ -18,7 +16,12 @@ find $MOODLE_DATA_DIR -type d -exec chmod 2770 {} \;
 find $MOODLE_DATA_DIR -type f -exec chmod 0660 {} \;
 chown -R www-data:www-data $MOODLE_DATA_DIR
 
-echo "Starting final setup for Moodle..."
+# Verify database connection with explicit port and socket
+echo "Verifying database connection..."
+if ! PGPASSWORD=$MOODLE_DB_PASSWORD psql -h localhost -p 5432 -U $MOODLE_DB_USER -d $MOODLE_DB_NAME -c '\l'; then
+    echo "Error: Unable to connect to PostgreSQL database."
+    exit 1
+fi
 
 # Validate Redis connectivity
 if ! nc -z 127.0.0.1 6379; then
@@ -29,31 +32,33 @@ fi
 # Set up cron job for Moodle tasks
 echo "*/1 * * * * /usr/bin/php $MOODLE_INSTALL_DIR/admin/cli/cron.php >/dev/null 2>&1" | crontab -u www-data -
 
-# Test database connection before purging caches
-if ! PGPASSWORD=$MOODLE_DB_PASSWORD psql -h localhost -p 5432 -U $MOODLE_DB_USER -d $MOODLE_DB_NAME -c '\l'; then
-    echo "Error: Unable to connect to PostgreSQL database."
-    exit 1
-fi
+# Update config.php with correct database settings if not already set
+sed -i "s/'dbport' => ''/'dbport' => '5432'/" "$MOODLE_CONFIG_PHP"
+sed -i "s/'dbsocket' => ''/'dbsocket' => '\/var\/run\/postgresql\/.s.PGSQL.5432'/" "$MOODLE_CONFIG_PHP"
 
 # Purge Moodle caches
-php "$MOODLE_INSTALL_DIR/admin/cli/purge_caches.php" || { echo "Error: Failed to purge Moodle caches"; exit 1; }
+sudo -u www-data php "$MOODLE_INSTALL_DIR/admin/cli/purge_caches.php" || { 
+    echo "Error: Failed to purge Moodle caches"; 
+    exit 1; 
+}
 
-# Disable maintenance mode (in case it was enabled during installation)
-php "$MOODLE_INSTALL_DIR/admin/cli/maintenance.php" --disable || { echo "Error: Failed to disable maintenance mode"; exit 1; }
+# Disable maintenance mode
+sudo -u www-data php "$MOODLE_INSTALL_DIR/admin/cli/maintenance.php" --disable || { 
+    echo "Error: Failed to disable maintenance mode"; 
+    exit 1; 
+}
 
-# Verify Apache is running
-if ! systemctl is-active --quiet apache2; then
-    echo "Error: Apache is not running. Attempting to start..."
-    systemctl start apache2 || { echo "Failed to start Apache. Please check the logs."; exit 1; }
-fi
+# Verify services are running
+for service in apache2 postgresql redis-server; do
+    if ! systemctl is-active --quiet $service; then
+        echo "Error: $service is not running. Attempting to start..."
+        systemctl start $service || { 
+            echo "Failed to start $service. Please check the logs."; 
+            exit 1; 
+        }
+    fi
+done
 
-# Verify PostgreSQL is running
-if ! systemctl is-active --quiet postgresql; then
-    echo "Error: PostgreSQL is not running. Attempting to start..."
-    systemctl start postgresql || { echo "Failed to start PostgreSQL. Please check the logs."; exit 1; }
-fi
-
-# Display Moodle URL
 echo "Moodle installation completed successfully."
 echo "You can access your Moodle instance at: $MOODLE_PROTOCOL://$MOODLE_URL"
 
