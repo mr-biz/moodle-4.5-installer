@@ -17,17 +17,20 @@ fi
 #    Y
 ############################################
 #
-MOODLE_IP_ADDRESS="10.10.10.10"  # Replace with your actual IP address
-MOODLE_URL="moodle.example.com"   # Replace with your actual domain name
+MOODLE_IP_ADDRESS="192.168.1.60"  # Replace with your actual IP address
+MOODLE_URL="moodle.mr-biz.uk"   # Replace with your actual domain name
 # Set Certbot challenge type (1 for HTTP, 2 for DNS)
-CHALLENGE_TYPE="1"  # "1" for HTTP challenge. Change to "2" for DNS challenge
-CERTBOT_EMAIL="your_email@example.com"  # Replace with your actual email
+CHALLENGE_TYPE="2"  # "1" for HTTP challenge. "2" for DNS challenge
+CERTBOT_EMAIL="biz@theitguy.uk"  # Replace with your actual email
 #
 #######################################################
 #
 #  Parameters below optionally may be changed
 #
 #######################################################
+#
+LOCALE="en_US.UTF-8"
+LC_ALL="en_US.UTF-8"
 #
 # Set environment variables for credentials
 MOODLE_DB_NAME="moodle"
@@ -58,6 +61,11 @@ MOODLE_IP_ADDRESS="$MOODLE_IP_ADDRESS"
 MOODLE_URL="$MOODLE_URL"
 MOODLE_PROTOCOL="$MOODLE_PROTOCOL"
 CHALLENGE_TYPE="$CHALLENGE_TYPE"
+CERTBOT_EMAIL="$CERTBOT_EMAIL"
+SSL_CERT_PATH="$SSL_CERT_PATH"
+SSL_KEY_PATH="$SSL_KEY_PATH"
+LOCALE="$LOCALE"
+LC_ALL="$LC_ALL"
 APACHE_CONF_PATH="$APACHE_CONF_PATH"
 APACHE_PORTS_CONF="$APACHE_PORTS_CONF"
 MOODLE_VHOST_CONF="$MOODLE_VHOST_CONF"
@@ -65,10 +73,6 @@ MOODLE_INSTALL_DIR="$MOODLE_INSTALL_DIR"
 MOODLE_DATA_DIR="$MOODLE_DATA_DIR"
 APACHE_LOG_DIR="$APACHE_LOG_DIR"
 MOODLE_CONFIG_PHP="$MOODLE_CONFIG_PHP"
-SSL_CERT_PATH="$SSL_CERT_PATH"
-SSL_KEY_PATH="$SSL_KEY_PATH"
-CHALLENGE_TYPE="$CHALLENGE_TYPE"
-CERTBOT_EMAIL="$CERTBOT_EMAIL"
 EOL
 
 echo "Parameters prepared and saved to /tmp/moodle_params.sh"

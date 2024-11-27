@@ -3,9 +3,15 @@
 source /tmp/moodle_params.sh
 
 # Ensure required locales are available
+# Ensure required locales are available
 echo "Ensuring required locales are available..."
-locale-gen en_US.UTF-8 || { echo "Failed to generate en_US.UTF-8 locale"; exit 1; }
-update-locale || { echo "Failed to update locales"; exit 1; }
+if ! locale -a | grep -q 'en_US.utf8'; then
+    echo "en_US.UTF-8 locale not found. Generating..."
+    locale-gen en_US.UTF-8 || { echo "Failed to generate en_US.UTF-8 locale"; exit 1; }
+    update-locale LANG=en_US.UTF-8 || { echo "Failed to update locales"; exit 1; }
+else
+    echo "en_US.UTF-8 locale already available."
+fi
 
 # Check PostgreSQL status and start if necessary
 if systemctl is-active --quiet postgresql; then
@@ -32,11 +38,11 @@ fi
 # Set up PostgreSQL with UTF-8 encoding
 echo "Setting up PostgreSQL database..."
 su - postgres << EOF
-psql -c "CREATE DATABASE $MOODLE_DB_NAME WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE template0;"
+psql -c "CREATE DATABASE $MOODLE_DB_NAME WITH ENCODING 'UTF8' LC_COLLATE='en_US.utf8' LC_CTYPE='en_US.utf8' TEMPLATE template0;"
 psql -c "CREATE USER $MOODLE_DB_USER WITH ENCRYPTED PASSWORD '$MOODLE_DB_PASSWORD';"
 psql -c "GRANT ALL PRIVILEGES ON DATABASE $MOODLE_DB_NAME TO $MOODLE_DB_USER;"
 EOF
-
+systemctl restart postgresql
 # Validate PostgreSQL setup
 echo "Validating PostgreSQL setup..."
 if ! PGPASSWORD=$MOODLE_DB_PASSWORD psql -h localhost -U $MOODLE_DB_USER -d $MOODLE_DB_NAME -c '\q' 2>/dev/null; then

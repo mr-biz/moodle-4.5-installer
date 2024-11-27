@@ -18,3 +18,21 @@ php8.2-mbstring php8.2-soap php8.2-zip git redis-server php8.2-redis \
 certbot python3-certbot-apache
 
 echo "Dependencies installed successfully"
+
+# Ensure the required locale is available
+locale-gen $LOCALE
+
+# Set the locale in /etc/default/locale
+echo "LANG=$LOCALE" > /etc/default/locale
+echo "LC_ALL=$LC_ALL" >> /etc/default/locale
+
+# Update locale
+update-locale LANG=$LOCALE LC_ALL=$LC_ALL
+
+# Reconfigure locales
+dpkg-reconfigure --frontend=noninteractive locales
+
+# Verify the locale settings
+locale
+
+echo "Locale configuration completed successfully."
