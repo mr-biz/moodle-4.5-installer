@@ -15,7 +15,7 @@ REDIS_PASSWORD=$(openssl rand -base64 32)
 # Set Moodle instance parameters
 MOODLE_IP_ADDRESS="192.168.1.60"  # Replace with your actual IP address
 MOODLE_URL="moodle.mr-biz.uk"   # Replace with your actual domain name
-MOODLE_PROTOCOL="http"            # Use "https" if using SSL
+MOODLE_PROTOCOL="https"            # Use "https" if using SSL
 
 # Set Certbot challenge type (1 for HTTP, 2 for DNS)
 CHALLENGE_TYPE="2"  # Change to "2" for DNS challenge
