@@ -40,4 +40,4 @@ if [ ! -d "$MOODLE_DATA_DIR" ] || [ ! -w "$MOODLE_DATA_DIR" ]; then
     exit 1
 fi
 
-echo "Moo
+echo "Moodle setup completed successfully."
