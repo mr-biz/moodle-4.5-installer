@@ -4,8 +4,8 @@ source /tmp/moodle_params.sh
 
 # Ensure required locales are available
 echo "Ensuring required locales are available..."
-sudo locale-gen en_US.UTF-8 || { echo "Failed to generate en_US.UTF-8 locale"; exit 1; }
-sudo update-locale || { echo "Failed to update locales"; exit 1; }
+locale-gen en_US.UTF-8 || { echo "Failed to generate en_US.UTF-8 locale"; exit 1; }
+update-locale || { echo "Failed to update locales"; exit 1; }
 
 # Check PostgreSQL status and start if necessary
 if systemctl is-active --quiet postgresql; then
