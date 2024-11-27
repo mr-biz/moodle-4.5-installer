@@ -3,6 +3,9 @@
 # Source the parameters
 source /tmp/moodle_params.sh
 
+# Create Moodle directory if it doesn't exist
+mkdir -p "$MOODLE_INSTALL_DIR"
+
 # Create config.php with Redis configuration
 cat > $MOODLE_CONFIG_PHP <<EOL
 <?php
