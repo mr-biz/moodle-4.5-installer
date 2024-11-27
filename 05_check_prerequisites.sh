@@ -2,9 +2,9 @@
 
 source /tmp/moodle_params.sh
 
-# Validate parameters
-if [ -z "$MOODLE_DB_NAME" ] || [ -z "$MOODLE_DB_USER" ] || [ -z "$MOODLE_DB_PASSWORD" ] || [ -z "$REDIS_PASSWORD" ] || [ -z "$MOODLE_IP_ADDRESS" ] || [ -z "$MOODLE_URL" ] || [ -z "$MOODLE_PROTOCOL" ]; then
-    echo "Error: One or more required parameters are missing."
+# Validate essential parameters
+if [ -z "$MOODLE_DB_NAME" ] || [ -z "$MOODLE_DB_USER" ] || [ -z "$MOODLE_DB_PASSWORD" ] || [ -z "$REDIS_PASSWORD" ]; then
+    echo "Error: Essential parameters are missing."
     exit 1
 fi
 
@@ -29,20 +29,19 @@ if [ ${#REDIS_PASSWORD} -lt 8 ]; then
     exit 1
 fi
 
-# Validate IP address format
-if ! [[ $MOODLE_IP_ADDRESS =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+# Validate IP address format if provided
+if [ ! -z "$MOODLE_IP_ADDRESS" ] && ! [[ $MOODLE_IP_ADDRESS =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Error: Invalid IP address format."
     exit 1
 fi
 
-# Validate URL format
-if ! [[ $MOODLE_URL =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-    echo "Error: Invalid URL format."
-    exit 1
+# Validate URL format if provided
+if [ ! -z "$MOODLE_URL" ] && ! [[ $MOODLE_URL =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+    echo "Warning: URL format may not be valid for local installations."
 fi
 
-# Validate protocol
-if [[ "$MOODLE_PROTOCOL" != "http" && "$MOODLE_PROTOCOL" != "https" ]]; then
+# Validate protocol if provided
+if [ ! -z "$MOODLE_PROTOCOL" ] && [[ "$MOODLE_PROTOCOL" != "http" && "$MOODLE_PROTOCOL" != "https" ]]; then
     echo "Error: Invalid protocol. Must be 'http' or 'https'."
     exit 1
 fi
