@@ -18,6 +18,7 @@ chown -R www-data:www-data $MOODLE_DATA_DIR
 
 # Verify database connection with explicit port and socket
 echo "Verifying database connection..."
+
 if ! PGPASSWORD=$MOODLE_DB_PASSWORD psql -h localhost -p 5432 -U $MOODLE_DB_USER -d $MOODLE_DB_NAME -c '\l'; then
     echo "Error: Unable to connect to PostgreSQL database."
     exit 1
