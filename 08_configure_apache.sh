@@ -9,18 +9,12 @@ apt update && apt install -y certbot python3-certbot-apache
 # Obtain SSL Certificates based on challenge type
 if [ "$CHALLENGE_TYPE" -eq 1 ]; then
     echo "Obtaining SSL certificates using HTTP challenge..."
-    sudo certbot --apache -d "$MOODLE_URL" -d  --non-interactive --agree-tos --email your_email@example.com || {
-        echo "Error: Failed to obtain SSL certificates. Please check your domain settings."
-        exit 1
-    }
+    sudo certbot --apache -d "$MOODLE_URL" -d "$MOODLE_IP_ADDRESS" --non-interactive --agree-tos --email "$CERTBOT_EMAIL"
 elif [ "$CHALLENGE_TYPE" -eq 2 ]; then
     echo "Obtaining SSL certificates using DNS challenge..."
-    sudo certbot certonly --manual --preferred-challenges dns -d "$MOODLE_URL" || {
-        echo "Error: Failed to obtain SSL certificates via DNS challenge."
-        exit 1
-    }
+    sudo certbot certonly --manual --preferred-challenges dns -d "$MOODLE_URL" -d "$MOODLE_IP_ADDRESS" --non-interactive --agree-tos --email "$CERTBOT_EMAIL"
 else
-    echo "Invalid challenge type specified. Please set CHALLENGE_TYPE to either 1 (HTTP) or 2 (DNS)."
+    echo "Invalid CHALLENGE_TYPE. Please set it to 1 for HTTP or 2 for DNS challenge."
     exit 1
 fi
 

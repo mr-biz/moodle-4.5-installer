@@ -6,18 +6,35 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
+#  Set Environment Parameters
+#
+# Set Moodle instance parameters ###########
+#
+#    Parameters below must be changed
+#    |
+#    |
+#   \ /
+#    Y
+############################################
+#
+MOODLE_IP_ADDRESS="10.10.10.10"  # Replace with your actual IP address
+MOODLE_URL="moodle.example.com"   # Replace with your actual domain name
+# Set Certbot challenge type (1 for HTTP, 2 for DNS)
+CHALLENGE_TYPE="1"  # "1" for HTTP challenge. Change to "2" for DNS challenge
+CERTBOT_EMAIL="your_email@example.com"  # Replace with your actual email
+#
+#######################################################
+#
+#  Parameters below optionally may be changed
+#
+#######################################################
+#
 # Set environment variables for credentials
 MOODLE_DB_NAME="moodle"
 MOODLE_DB_USER="moodledude"
 MOODLE_DB_PASSWORD=$(openssl rand -base64 32)
 REDIS_PASSWORD=$(openssl rand -base64 32)
-
-# Set Moodle instance parameters
-MOODLE_IP_ADDRESS="192.168.1.60"  # Replace with your actual IP address
-MOODLE_URL="moodle.mr-biz.uk"   # Replace with your actual domain name
-# Set Certbot challenge type (1 for HTTP, 2 for DNS)
-CHALLENGE_TYPE="2"  # Change to "2" for DNS challenge
-
+#
 # Set file paths
 APACHE_CONF_PATH="/etc/apache2/apache2.conf"
 APACHE_PORTS_CONF="/etc/apache2/ports.conf"
@@ -50,6 +67,8 @@ APACHE_LOG_DIR="$APACHE_LOG_DIR"
 MOODLE_CONFIG_PHP="$MOODLE_CONFIG_PHP"
 SSL_CERT_PATH="$SSL_CERT_PATH"
 SSL_KEY_PATH="$SSL_KEY_PATH"
+CHALLENGE_TYPE="$CHALLENGE_TYPE"
+CERTBOT_EMAIL="$CERTBOT_EMAIL"
 EOL
 
 echo "Parameters prepared and saved to /tmp/moodle_params.sh"
