@@ -3,21 +3,6 @@
 # Source the parameters
 source /tmp/moodle_params.sh
 
-# Update system packages (if needed)
-apt update && apt install -y certbot python3-certbot-apache
-
-# Obtain SSL Certificates based on challenge type
-if [ "$CHALLENGE_TYPE" -eq 1 ]; then
-    echo "Obtaining SSL certificates using HTTP challenge..."
-    sudo certbot --apache -d "$MOODLE_URL" -d "$MOODLE_IP_ADDRESS" --non-interactive --agree-tos --email "$CERTBOT_EMAIL"
-elif [ "$CHALLENGE_TYPE" -eq 2 ]; then
-    echo "Obtaining SSL certificates using DNS challenge..."
-    sudo certbot certonly --manual --preferred-challenges dns -d "$MOODLE_URL" -d "$MOODLE_IP_ADDRESS" --non-interactive --agree-tos --email "$CERTBOT_EMAIL"
-else
-    echo "Invalid CHALLENGE_TYPE. Please set it to 1 for HTTP or 2 for DNS challenge."
-    exit 1
-fi
-
 # Configure Apache for Moodle site (HTTP)
 cat > "$MOODLE_VHOST_CONF" <<EOL
 <VirtualHost *:80>
@@ -37,8 +22,26 @@ cat > "$MOODLE_VHOST_CONF" <<EOL
 </VirtualHost>
 EOL
 
-# Configure Apache for Moodle site (HTTPS)
-cat > /etc/apache2/sites-available/moodle-ssl.conf <<EOL
+# Enable necessary Apache modules
+a2enmod headers || { echo "Error: Failed to enable headers module"; exit 1; }
+a2enmod rewrite || { echo "Error: Failed to enable rewrite module"; exit 1; }
+
+# Only proceed with SSL setup if CHALLENGE_TYPE is not 0
+if [ "$CHALLENGE_TYPE" -ne 0 ]; then
+    # Install Certbot
+    apt update && apt install -y certbot python3-certbot-apache
+
+    # Obtain SSL Certificates based on challenge type
+    if [ "$CHALLENGE_TYPE" -eq 1 ]; then
+        echo "Obtaining SSL certificates using HTTP challenge..."
+        certbot --apache -d "$MOODLE_URL" -d "$MOODLE_IP_ADDRESS" --non-interactive --agree-tos --email "$CERTBOT_EMAIL"
+    elif [ "$CHALLENGE_TYPE" -eq 2 ]; then
+        echo "Obtaining SSL certificates using DNS challenge..."
+        certbot certonly --manual --preferred-challenges dns -d "$MOODLE_URL" -d "$MOODLE_IP_ADDRESS" --non-interactive --agree-tos --email "$CERTBOT_EMAIL"
+    fi
+
+    # Configure Apache for HTTPS
+    cat > /etc/apache2/sites-available/moodle-ssl.conf <<EOL
 <VirtualHost *:443>
     ServerName $MOODLE_URL
     ServerAlias $MOODLE_IP_ADDRESS
@@ -60,14 +63,13 @@ cat > /etc/apache2/sites-available/moodle-ssl.conf <<EOL
 </VirtualHost>
 EOL
 
-# Enable necessary Apache modules and sites
-a2enmod ssl || { echo "Error: Failed to enable SSL module"; exit 1; }
-a2enmod headers || { echo "Error: Failed to enable headers module"; exit 1; }
-a2enmod rewrite || { echo "Error: Failed to enable rewrite module"; exit 1; }
+    # Enable SSL module and site
+    a2enmod ssl || { echo "Error: Failed to enable SSL module"; exit 1; }
+    a2ensite moodle-ssl.conf || { echo "Error: Failed to enable Moodle SSL site configuration"; exit 1; }
+fi
 
-# Enable Moodle site configuration for both HTTP and HTTPS
+# Enable HTTP site configuration
 a2ensite moodle.conf || { echo "Error: Failed to enable Moodle site configuration"; exit 1; }
-a2ensite moodle-ssl.conf || { echo "Error: Failed to enable Moodle SSL site configuration"; exit 1; }
 
 # Restart Apache to apply changes
 systemctl restart apache2 || { echo "Error: Failed to restart Apache"; exit 1; }
@@ -75,7 +77,7 @@ systemctl restart apache2 || { echo "Error: Failed to restart Apache"; exit 1; }
 # Validate Apache configuration
 if ! apache2ctl -t; then
     echo "Error: Apache configuration test failed."
-    exit 1;
+    exit 1
 fi
 
 echo "Apache configuration completed successfully."
