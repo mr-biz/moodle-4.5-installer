@@ -1,19 +1,28 @@
 #!/bin/bash
 
-# Configure Apache for Moodle site
-cat > /etc/apache2/sites-available/moodle.conf <<EOL
-<VirtualHost *:80>
-    ServerName localhost
-    DocumentRoot /var/www/html/moodle
+# Source the parameters
+source /tmp/moodle_params.sh
 
-    <Directory /var/www/html/moodle>
+# Configure Apache for Moodle site
+cat > $MOODLE_VHOST_CONF <<EOL
+<VirtualHost *:80>
+    ServerName $SERVER_NAME
+    ServerAdmin webmaster@localhost
+    DocumentRoot $MOODLE_INSTALL_DIR
+    
+    <Directory $MOODLE_INSTALL_DIR>
         Options FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOL
 
+a2enmod ssl
+a2enmod headers
 a2ensite moodle.conf
 a2enmod rewrite
 systemctl restart apache2

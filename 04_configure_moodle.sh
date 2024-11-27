@@ -19,23 +19,23 @@ git branch --track MOODLE_405_STABLE origin/MOODLE_405_STABLE
 git checkout MOODLE_405_STABLE
 
 # Copy Moodle to web directory and set permissions
-mkdir -p /var/www/html/moodle
-cp -R /opt/moodle/* /var/www/html/moodle/
-chown -R root:root /var/www/html/moodle
-chmod -R 0755 /var/www/html/moodle
+mkdir -p $MOODLE_INSTALL_DIR
+cp -R /opt/moodle/* $MOODLE_INSTALL_DIR/
+chown -R root:root $MOODLE_INSTALL_DIR
+chmod -R 0755 $MOODLE_INSTALL_DIR
 
 # Set up moodledata directory
-mkdir -p /var/moodledata
-chown www-data:www-data /var/moodledata
-chmod 0770 /var/moodledata
+mkdir -p $MOODLE_DATA_DIR
+chown www-data:www-data $MOODLE_DATA_DIR
+chmod 0770 $MOODLE_DATA_DIR
 
 # Configure Apache for Moodle site
-cat > /etc/apache2/sites-available/moodle.conf <<EOL
+cat > $MOODLE_VHOST_CONF <<EOL
 <VirtualHost *:80>
     ServerName localhost
-    DocumentRoot /var/www/html/moodle
+    DocumentRoot $MOODLE_INSTALL_DIR
 
-    <Directory /var/www/html/moodle>
+    <Directory $MOODLE_INSTALL_DIR>
         Options FollowSymLinks
         AllowOverride All
         Require all granted
@@ -48,7 +48,7 @@ a2enmod rewrite
 systemctl restart apache2
 
 # Create config.php with Redis configuration
-cat > /var/www/html/moodle/config.php <<EOL
+cat > $MOODLE_CONFIG_PHP <<EOL
 <?php
 unset(\$CFG);
 global \$CFG;
@@ -75,7 +75,7 @@ global \$CFG;
 );
 
 \$CFG->wwwroot = 'http://localhost';
-\$CFG->dataroot  = '/var/moodledata';
+\$CFG->dataroot  = '$MOODLE_DATA_DIR';
 \$CFG->admin     = 'admin';
 \$CFG->directorypermissions = 0755;
 
@@ -92,10 +92,10 @@ require_once(__DIR__ . '/lib/setup.php');
 EOL
 
 # Set correct permissions for config.php
-chown root:root /var/www/html/moodle/config.php
-chmod 0644 /var/www/html/moodle/config.php
+chown root:root $MOODLE_CONFIG_PHP
+chmod 0644 $MOODLE_CONFIG_PHP
 
 # Set up cron job for Moodle tasks
-echo "*/1 * * * * /usr/bin/php /var/www/html/moodle/admin/cli/cron.php >/dev/null 2>&1" | crontab -u www-data -
+echo "*/1 * * * * /usr/bin/php $MOODLE_INSTALL_DIR/admin/cli/cron.php >/dev/null 2>&1" | crontab -u www-data -
 
 echo "Moodle setup completed successfully."

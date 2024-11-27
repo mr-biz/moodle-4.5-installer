@@ -16,18 +16,18 @@ if [ ! -f "/opt/moodle/version.php" ]; then
 fi
 
 # Copy Moodle to web directory and set permissions
-mkdir -p /var/www/html/moodle
-cp -R /opt/moodle/* /var/www/html/moodle/
-chown -R root:root /var/www/html/moodle
-chmod -R 0755 /var/www/html/moodle
+mkdir -p $MOODLE_INSTALL_DIR
+cp -R /opt/moodle/* $MOODLE_INSTALL_DIR/
+chown -R root:root $MOODLE_INSTALL_DIR
+chmod -R 0755 $MOODLE_INSTALL_DIR
 
 # Set up moodledata directory
-mkdir -p /var/moodledata
-chown www-data:www-data /var/moodledata
-chmod 0770 /var/moodledata
+mkdir -p $MOODLE_DATA_DIR
+chown www-data:www-data $MOODLE_DATA_DIR
+chmod 0770 $MOODLE_DATA_DIR
 
 # Validate moodledata directory
-if [ ! -d "/var/moodledata" ] || [ ! -w "/var/moodledata" ]; then
+if [ ! -d "$MOODLE_DATA_DIR" ] || [ ! -w "$MOODLE_DATA_DIR" ]; then
     echo "Error: Moodle data directory does not exist or is not writable."
     exit 1
 fi

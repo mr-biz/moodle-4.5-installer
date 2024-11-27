@@ -2,8 +2,14 @@
 
 source /tmp/moodle_params.sh
 
+# Echo the contents of /tmp/moodle_params.sh for debugging
+echo "Contents of /tmp/moodle_params.sh:"
+echo "--------------------------------"
+cat /tmp/moodle_params.sh
+echo "--------------------------------"
+
 # Create config.php with Redis configuration
-cat > /var/www/html/moodle/config.php <<EOL
+cat > $MOODLE_CONFIG_PHP <<EOL
 <?php
 unset(\$CFG);
 global \$CFG;
@@ -29,8 +35,8 @@ global \$CFG;
   'dbsocket' => '',
 );
 
-\$CFG->wwwroot = 'http://localhost';
-\$CFG->dataroot  = '/var/moodledata';
+\$CFG->wwwroot = 'http://$SERVER_NAME';
+\$CFG->dataroot  = '$MOODLE_DATA_DIR';
 \$CFG->admin     = 'admin';
 \$CFG->directorypermissions = 0755;
 
@@ -47,11 +53,11 @@ require_once(__DIR__ . '/lib/setup.php');
 EOL
 
 # Set correct permissions for config.php
-chown root:root /var/www/html/moodle/config.php
-chmod 0644 /var/www/html/moodle/config.php
+chown root:root $MOODLE_CONFIG_PHP
+chmod 0644 $MOODLE_CONFIG_PHP
 
 # Validate config.php
-if [ ! -f "/var/www/html/moodle/config.php" ]; then
+if [ ! -f "$MOODLE_CONFIG_PHP" ]; then
     echo "Error: config.php was not created successfully."
     exit 1
 fi
