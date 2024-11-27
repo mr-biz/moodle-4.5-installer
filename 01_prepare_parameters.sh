@@ -22,7 +22,6 @@ MOODLE_URL="moodle.mr-biz.uk"   # Replace with your actual domain name
 # Set Certbot challenge type (1 for HTTP, 2 for DNS)
 CHALLENGE_TYPE="0"  # "0" for no SSL. "1" for HTTP challenge. "2" for DNS challenge
 CERTBOT_EMAIL="biz@theitguy.uk"  # Replace with your actual email
-MOODLE_PROTOCOL="HTTP" # HTTPS or HTTP
 #
 #######################################################
 #
