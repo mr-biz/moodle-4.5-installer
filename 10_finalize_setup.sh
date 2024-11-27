@@ -3,8 +3,11 @@
 # Source the parameters
 source /tmp/moodle_params.sh
 
-# Set correct permissions for Moodle files and directories:
+# Update config.php with database port and socket settings
+sed -i "s/'dbport' => '',/'dbport' => '5432',/" "$MOODLE_CONFIG_PHP"
+sed -i "s/'dbsocket' => '',/'dbsocket' => '\/var\/run\/postgresql',/" "$MOODLE_CONFIG_PHP"
 
+# Set correct permissions for Moodle files and directories:
 # For Moodle application files
 find $MOODLE_INSTALL_DIR -type d -exec chmod 2770 {} \;
 find $MOODLE_INSTALL_DIR -type f -exec chmod 0660 {} \;
@@ -24,7 +27,13 @@ if ! nc -z 127.0.0.1 6379; then
 fi
 
 # Set up cron job for Moodle tasks
-echo "*/1 * * * * /usr/bin/php $MOODLE_INSTALL_DIR/admin/cli/cron.php >/dev/null 2>&1" | crontab -u www-data - || { echo "Error: Failed to set up cron job"; exit 1; }
+echo "*/1 * * * * /usr/bin/php $MOODLE_INSTALL_DIR/admin/cli/cron.php >/dev/null 2>&1" | crontab -u www-data -
+
+# Test database connection before purging caches
+if ! PGPASSWORD=$MOODLE_DB_PASSWORD psql -h localhost -p 5432 -U $MOODLE_DB_USER -d $MOODLE_DB_NAME -c '\l'; then
+    echo "Error: Unable to connect to PostgreSQL database."
+    exit 1
+fi
 
 # Purge Moodle caches
 php "$MOODLE_INSTALL_DIR/admin/cli/purge_caches.php" || { echo "Error: Failed to purge Moodle caches"; exit 1; }
@@ -43,9 +52,6 @@ if ! systemctl is-active --quiet postgresql; then
     echo "Error: PostgreSQL is not running. Attempting to start..."
     systemctl start postgresql || { echo "Failed to start PostgreSQL. Please check the logs."; exit 1; }
 fi
-
-PGPASSWORD=$MOODLE_DB_PASSWORD psql -h localhost -U $MOODLE_DB_USER -d $MOODLE_DB_NAME -c '\l'
-
 
 # Display Moodle URL
 echo "Moodle installation completed successfully."
