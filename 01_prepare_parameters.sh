@@ -20,7 +20,7 @@ fi
 MOODLE_IP_ADDRESS="192.168.1.60"  # Replace with your actual IP address
 MOODLE_URL="moodle.mr-biz.uk"   # Replace with your actual domain name
 # Set Certbot challenge type (1 for HTTP, 2 for DNS)
-CHALLENGE_TYPE="2"  # "1" for HTTP challenge. "2" for DNS challenge
+CHALLENGE_TYPE="0"  # "1" for HTTP challenge. "2" for DNS challenge
 CERTBOT_EMAIL="biz@theitguy.uk"  # Replace with your actual email
 #
 #######################################################
