@@ -55,10 +55,10 @@ global \$CFG;
 \$CFG->unicodedb = true;
 \$CFG->maxbytes = 268435456;
 
-\$CFG->dboptions = array (
-  'dbpersist' => 0,
-  'dbport' => '',
-  'dbsocket' => '',
+$CFG->dboptions = array (
+    'dbpersist' => 0,
+    'dbport' => '5432',
+    'dbsocket' => '/var/run/postgresql/.s.PGSQL.5432'
 );
 
 \$CFG->wwwroot = '$MOODLE_PROTOCOL://$MOODLE_URL';
