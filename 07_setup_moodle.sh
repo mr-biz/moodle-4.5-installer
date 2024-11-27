@@ -17,21 +17,27 @@ if [ ! -f "/opt/moodle/version.php" ]; then
     exit 1
 fi
 
-# Copy Moodle to web directory and set permissions
+# Copy Moodle to web directory
 mkdir -p "$MOODLE_INSTALL_DIR" || { echo "Error: Unable to create $MOODLE_INSTALL_DIR"; exit 1; }
 cp -R /opt/moodle/* "$MOODLE_INSTALL_DIR/" || { echo "Error: Unable to copy Moodle files"; exit 1; }
-chown -R root:root "$MOODLE_INSTALL_DIR" || { echo "Error: Unable to set ownership of $MOODLE_INSTALL_DIR"; exit 1; }
-chmod -R 0755 "$MOODLE_INSTALL_DIR" || { echo "Error: Unable to set permissions on $MOODLE_INSTALL_DIR"; exit 1; }
 
 # Set up moodledata directory
 mkdir -p "$MOODLE_DATA_DIR" || { echo "Error: Unable to create $MOODLE_DATA_DIR"; exit 1; }
-chown www-data:www-data "$MOODLE_DATA_DIR" || { echo "Error: Unable to set ownership of $MOODLE_DATA_DIR"; exit 1; }
-chmod 0770 "$MOODLE_DATA_DIR" || { echo "Error: Unable to set permissions on $MOODLE_DATA_DIR"; exit 1; }
 
-# Validate moodledata directory
+# Set correct permissions for Moodle installation directory
+find "$MOODLE_INSTALL_DIR" -type d -exec chmod 2770 {} \; || { echo "Error: Unable to set directory permissions"; exit 1; }
+find "$MOODLE_INSTALL_DIR" -type f -exec chmod 0660 {} \; || { echo "Error: Unable to set file permissions"; exit 1; }
+chown -R www-data:www-data "$MOODLE_INSTALL_DIR" || { echo "Error: Unable to set ownership"; exit 1; }
+
+# Set correct permissions for moodledata directory
+find "$MOODLE_DATA_DIR" -type d -exec chmod 2770 {} \; || { echo "Error: Unable to set moodledata directory permissions"; exit 1; }
+find "$MOODLE_DATA_DIR" -type f -exec chmod 0660 {} \; || { echo "Error: Unable to set moodledata file permissions"; exit 1; }
+chown -R www-data:www-data "$MOODLE_DATA_DIR" || { echo "Error: Unable to set moodledata ownership"; exit 1; }
+
+# Validate directory permissions
 if [ ! -d "$MOODLE_DATA_DIR" ] || [ ! -w "$MOODLE_DATA_DIR" ]; then
     echo "Error: Moodle data directory does not exist or is not writable."
     exit 1
 fi
 
-echo "Moodle setup completed successfully."
+echo "Moo
