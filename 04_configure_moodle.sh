@@ -3,37 +3,6 @@
 # Source the parameters
 source /tmp/moodle_params.sh
 
-# Set up PostgreSQL with UTF-8 encoding
-#-u postgres psql <<EOF
-#CREATE DATABASE $MOODLE_DB_NAME WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8' TEMPLATE=template0;
-#CREATE USER $MOODLE_DB_USER WITH ENCRYPTED PASSWORD '$MOODLE_DB_PASSWORD';
-#GRANT ALL PRIVILEGES ON DATABASE $MOODLE_DB_NAME TO $MOODLE_DB_USER;
-#\q
-#EOF
-
-
-# Configure Apache for Moodle site
-cat > $MOODLE_VHOST_CONF <<EOL
-<VirtualHost *:80>
-    ServerName $MOODLE_URL
-    ServerAlias $MOODLE_IP_ADDRESS
-    DocumentRoot $MOODLE_INSTALL_DIR
-
-    <Directory $MOODLE_INSTALL_DIR>
-        Options FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-
-    ErrorLog ${APACHE_LOG_DIR}/moodle_error.log
-    CustomLog ${APACHE_LOG_DIR}/moodle_access.log combined
-</VirtualHost>
-EOL
-
-a2ensite moodle.conf
-a2enmod rewrite
-systemctl restart apache2
-
 # Create config.php with Redis configuration
 cat > $MOODLE_CONFIG_PHP <<EOL
 <?php
@@ -55,10 +24,10 @@ global \$CFG;
 \$CFG->unicodedb = true;
 \$CFG->maxbytes = 268435456;
 
-$CFG->dboptions = array (
-    'dbpersist' => 0,
-    'dbport' => '5432',
-    'dbsocket' => '/var/run/postgresql/.s.PGSQL.5432'
+\$CFG->dboptions = array (
+  'dbpersist' => 0,
+  'dbport' => '5432',
+  'dbsocket' => '/var/run/postgresql/.s.PGSQL.5432'
 );
 
 \$CFG->wwwroot = '$MOODLE_PROTOCOL://$MOODLE_URL';
@@ -78,5 +47,8 @@ define('CONTEXT_CACHE_MAX_SIZE', 7500);
 require_once(__DIR__ . '/lib/setup.php');
 EOL
 
+# Set correct permissions for config.php
+chown www-data:www-data $MOODLE_CONFIG_PHP
+chmod 0644 $MOODLE_CONFIG_PHP
 
-echo "Moodle setup completed successfully."
+echo "Moodle configuration completed successfully."
