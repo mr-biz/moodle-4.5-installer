@@ -3,6 +3,18 @@
 # Source the parameters
 source /tmp/moodle_params.sh
 
+# Set correct permissions for Moodle files and directories:
+
+# For Moodle application files
+find $MOODLE_INSTALL_DIR -type d -exec chmod 2770 {} \;
+find $MOODLE_INSTALL_DIR -type f -exec chmod 0660 {} \;
+chown -R www-data:www-data $MOODLE_INSTALL_DIR
+
+# For Moodle data directory
+find $MOODLE_DATA_DIR -type d -exec chmod 2770 {} \;
+find $MOODLE_DATA_DIR -type f -exec chmod 0660 {} \;
+chown -R www-data:www-data $MOODLE_DATA_DIR
+
 echo "Starting final setup for Moodle..."
 
 # Validate Redis connectivity
@@ -31,6 +43,9 @@ if ! systemctl is-active --quiet postgresql; then
     echo "Error: PostgreSQL is not running. Attempting to start..."
     systemctl start postgresql || { echo "Failed to start PostgreSQL. Please check the logs."; exit 1; }
 fi
+
+PGPASSWORD=$MOODLE_DB_PASSWORD psql -h localhost -U $MOODLE_DB_USER -d $MOODLE_DB_NAME -c '\l'
+
 
 # Display Moodle URL
 echo "Moodle installation completed successfully."
