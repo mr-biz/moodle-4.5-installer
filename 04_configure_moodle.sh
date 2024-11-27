@@ -78,8 +78,5 @@ define('CONTEXT_CACHE_MAX_SIZE', 7500);
 require_once(__DIR__ . '/lib/setup.php');
 EOL
 
-# Set correct permissions for config.php
-chown root:root $MOODLE_CONFIG_PHP
-chmod 0644 $MOODLE_CONFIG_PHP
 
 echo "Moodle setup completed successfully."
